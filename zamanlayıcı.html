@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geri Sayım Sayacı Pro</title>
+    <meta name="theme-color" content="#ffffff" id="metaThemeColor">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* MODAL GÖRÜNÜRLÜK VE RENK DÜZELTMESİ */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal.active { display: flex; }
+
+        /* MODAL İÇERİĞİ */
+        .modal-content {
+            background-color: white;
+            color: #1e293b;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- TAM SİYAH MODU AYARLARI --- */
+        .dark-mode {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+        .dark-mode .bg-white {
+            background-color: #111827 !important;
+            border: 1px solid #374151 !important;
+        }
+        .dark-mode .modal-content {
+            background-color: #111827 !important;
+            color: white !important;
+            border: 1px solid #4b5563 !important;
+        }
+        .dark-mode h1, .dark-mode h2, .dark-mode label, .dark-mode span {
+            color: #ffffff !important;
+        }
+        .dark-mode input[type="number"], .dark-mode select {
+            background-color: #1f2937 !important;
+            color: #ffffff !important;
+            border: 1px solid #4b5563 !important;
+        }
+        
+        /* Buton Renkleri (Siyah Yap butonu için düzeltme) */
+        #themeBtn {
+            background-color: #1e293b;
+            color: white !important;
+        }
+        .dark-mode #themeBtn {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+        
+        /* Kaydırıcı (Slider) için görünürlük ayarı */
+        input[type="range"] {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col items-center justify-center p-6" id="bodyTag">
+
+    <!-- Üst Kontrol Barı -->
+    <div class="fixed top-0 left-0 right-0 p-6 flex justify-between items-center w-full max-w-4xl mx-auto">
+        <button onclick="toggleSettings()" class="p-3 rounded-2xl bg-white shadow-sm border border-slate-200 active:scale-90 transition" id="settingsBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-slate-600"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>
+        </button>
+        <button onclick="toggleTheme()" class="px-6 py-2.5 rounded-xl font-bold shadow-md transition-all active:scale-95 flex items-center justify-center" id="themeBtn">
+            Siyah Yap
+        </button>
+    </div>
+
+    <!-- Ana Sayaç Ekranı -->
+    <div class="w-full max-w-sm space-y-8 text-center">
+        <h1 class="text-4xl font-black tracking-tight">Geri Sayım</h1>
+
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 flex justify-center items-center space-x-3">
+            <div class="flex flex-col items-center">
+                <input type="number" id="h" placeholder="00" class="w-16 text-5xl font-light bg-transparent text-center outline-none">
+                <span class="text-[10px] font-bold uppercase text-slate-400">Saat</span>
+            </div>
+            <span class="text-3xl text-slate-300 pb-5">:</span>
+            <div class="flex flex-col items-center">
+                <input type="number" id="m" placeholder="00" class="w-16 text-5xl font-light bg-transparent text-center outline-none">
+                <span class="text-[10px] font-bold uppercase text-slate-400">Dakika</span>
+            </div>
+            <span class="text-3xl text-slate-300 pb-5">:</span>
+            <div class="flex flex-col items-center">
+                <input type="number" id="s" placeholder="00" class="w-16 text-5xl font-light bg-transparent text-center outline-none">
+                <span class="text-[10px] font-bold uppercase text-slate-400">Saniye</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+            <button onclick="addMin(5)" class="py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-90 transition">+5dk</button>
+            <button onclick="addMin(10)" class="py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-90 transition">+10dk</button>
+            <button onclick="addMin(15)" class="py-4 bg-blue-600 text-white rounded-2xl font-bold active:scale-90 transition">+15dk</button>
+        </div>
+
+        <button id="startBtn" onclick="toggleTimer()" class="w-full py-5 bg-blue-600 text-white text-xl font-black rounded-3xl shadow-lg shadow-blue-500/30 active:scale-95 transition uppercase tracking-widest">Başlat</button>
+        <button onclick="reset()" class="w-full py-4 bg-slate-200 text-slate-600 font-bold rounded-2xl active:scale-95 transition">Sıfırla</button>
+    </div>
+
+    <!-- Ayarlar Modalı -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content p-8 rounded-[2.5rem] w-[90%] max-w-[340px] space-y-6">
+            <h2 class="text-2xl font-black">Ayarlar</h2>
+            
+            <div class="space-y-2 text-left">
+                <label class="text-xs font-bold uppercase opacity-60">Alarm Sesi</label>
+                <select id="music" class="w-full p-4 rounded-xl border border-slate-200 font-bold outline-none appearance-none">
+                    <option value="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg">Klasik Alarm</option>
+                    <option value="https://actions.google.com/sounds/v1/alarms/beep_short.ogg">Kısa Bip</option>
+                    <option value="https://actions.google.com/sounds/v1/alarms/bugle_tune.ogg">Trompet</option>
+                </select>
+            </div>
+
+            <div class="space-y-2 text-left">
+                <label class="text-xs font-bold uppercase opacity-60">Ses Seviyesi</label>
+                <input type="range" id="vol" min="0" max="1" step="0.1" value="0.5" class="w-full h-2 bg-slate-200 rounded-lg accent-blue-600">
+            </div>
+
+            <button onclick="toggleSettings()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/20 active:scale-95 transition">Tamam</button>
+        </div>
+    </div>
+
+    <audio id="player" loop></audio>
+
+    <script>
+        let interval, total = 0, isDark = false, isPaused = false;
+        const body = document.getElementById('bodyTag'), themeBtn = document.getElementById('themeBtn');
+        const hIn = document.getElementById('h'), mIn = document.getElementById('m'), sIn = document.getElementById('s');
+        const startBtn = document.getElementById('startBtn'), audio = document.getElementById('player');
+
+        function toggleTheme() {
+            isDark = !isDark;
+            body.classList.toggle('dark-mode', isDark);
+            themeBtn.innerText = isDark ? "Beyaz Yap" : "Siyah Yap";
+            document.getElementById('metaThemeColor').content = isDark ? "#000000" : "#ffffff";
+        }
+
+        function toggleSettings() { 
+            document.getElementById('settingsModal').classList.toggle('active'); 
+        }
+
+        function addMin(v) { 
+            mIn.value = (parseInt(mIn.value) || 0) + v; 
+            if(mIn.value >= 60) { 
+                hIn.value = (parseInt(hIn.value)||0)+1; 
+                mIn.value -= 60; 
+            } 
+        }
+
+        function toggleTimer() {
+            if(interval) { 
+                clearInterval(interval); 
+                interval = null; 
+                isPaused = true;
+                startBtn.innerText = "Devam Et"; 
+            }
+            else {
+                if(!isPaused) total = (parseInt(hIn.value)||0)*3600 + (parseInt(mIn.value)||0)*60 + (parseInt(sIn.value)||0);
+                if(total <= 0) return;
+                
+                isPaused = false;
+                startBtn.innerText = "Durdur";
+                interval = setInterval(() => {
+                    total--;
+                    if(total < 0) {
+                        clearInterval(interval);
+                        interval = null;
+                        audio.src = document.getElementById('music').value;
+                        audio.volume = document.getElementById('vol').value;
+                        audio.play();
+                        startBtn.innerText = "Süre Bitti!";
+                        return;
+                    }
+                    hIn.value = String(Math.floor(total/3600)).padStart(2, '0');
+                    mIn.value = String(Math.floor((total%3600)/60)).padStart(2, '0');
+                    sIn.value = String(total%60).padStart(2, '0');
+                }, 1000);
+            }
+        }
+
+        function reset() { 
+            clearInterval(interval); 
+            interval = null; 
+            total = 0; 
+            isPaused = false;
+            hIn.value = mIn.value = sIn.value = ""; 
+            startBtn.innerText = "Başlat"; 
+            audio.pause(); 
+            audio.currentTime = 0;
+        }
+    </script>
+</body>
+</html>
