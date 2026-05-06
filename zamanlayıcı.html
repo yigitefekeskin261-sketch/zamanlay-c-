@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişmiş Geri Sayım Sayacı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .timer-display {
+            font-variant-numeric: tabular-nums;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        .modal.active {
+            display: flex;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* --- KARANLIK MOD AYARLARI (TAM SİYAH) --- */
+        .dark-mode {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+        
+        .dark-mode input {
+            color: #ffffff !important;
+        }
+
+        .dark-mode .bg-white {
+            background-color: #111111 !important;
+            border-color: #333333 !important;
+        }
+
+        .dark-mode h1 {
+            color: #ffffff !important;
+            background: none !important;
+            -webkit-text-fill-color: initial !important;
+        }
+
+        /* "Siyah Yap" Butonu Özel Stili */
+        #themeBtn {
+            background-color: #1e293b;
+            color: #ffffff !important; /* Her zaman beyaz yazı */
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .dark-mode #themeBtn {
+            background-color: #ffffff !important;
+            color: #000000 !important; /* Siyah modda buton beyaz, yazı siyah olur */
+        }
+
+        .dark-mode .text-slate-400, 
+        .dark-mode .text-slate-500,
+        .dark-mode .text-slate-600 {
+            color: #a1a1aa !important; /* Yardımcı metinler gri tonu */
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900 min-h-screen flex flex-col items-center justify-center p-4" id="bodyTag">
+
+    <!-- Üst Kontroller -->
+    <div class="fixed top-0 left-0 right-0 p-6 flex justify-between items-center w-full max-w-5xl mx-auto">
+        <button onclick="toggleSettings()" class="p-3 rounded-xl bg-white shadow-sm hover:shadow-md transition-all active:scale-95 border border-slate-200" title="Ayarlar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        <button onclick="toggleTheme()" class="px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg" id="themeBtn">
+            Siyah Yap
+        </button>
+    </div>
+
+    <!-- Ana Sayaç Alanı -->
+    <div class="text-center max-w-md w-full space-y-10">
+        <h1 class="text-5xl font-black tracking-tight mb-2 text-slate-900">Geri Sayım</h1>
+        
+        <!-- Zaman Girişleri -->
+        <div class="flex justify-center items-center space-x-4 bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
+            <div class="flex flex-col items-center">
+                <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">Saat</span>
+                <input type="number" id="h" min="0" value="0" class="w-20 text-6xl font-light bg-transparent outline-none text-center text-slate-800">
+            </div>
+            <span class="text-4xl font-thin text-slate-300 mb-2">:</span>
+            <div class="flex flex-col items-center">
+                <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">Dakika</span>
+                <input type="number" id="m" min="0" max="59" value="0" class="w-20 text-6xl font-light bg-transparent outline-none text-center text-slate-800">
+            </div>
+            <span class="text-4xl font-thin text-slate-300 mb-2">:</span>
+            <div class="flex flex-col items-center">
+                <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">Saniye</span>
+                <input type="number" id="s" min="0" max="59" value="0" class="w-20 text-6xl font-light bg-transparent outline-none text-center text-slate-800">
+            </div>
+        </div>
+
+        <!-- Hızlı Artırma Butonları -->
+        <div class="grid grid-cols-3 gap-3">
+            <button onclick="addMinutes(5)" class="bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all active:scale-95">+5 dk</button>
+            <button onclick="addMinutes(10)" class="bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all active:scale-95">+10 dk</button>
+            <button onclick="addMinutes(15)" class="bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all active:scale-95">+15 dk</button>
+        </div>
+
+        <!-- Kontrol Butonları -->
+        <div class="flex flex-col space-y-4">
+            <button id="startBtn" onclick="handleStartPause()" class="w-full bg-blue-600 text-white text-xl font-bold py-5 rounded-[1.5rem] shadow-xl hover:bg-blue-700 transition-all active:scale-[0.98]">
+                Süreyi Başlat
+            </button>
+            <button id="resetBtn" onclick="resetTimer()" class="w-full bg-slate-200 text-slate-700 py-4 rounded-[1.5rem] font-bold hover:bg-slate-300 transition-all active:scale-[0.98]">
+                Sıfırla
+            </button>
+        </div>
+    </div>
+
+    <!-- Ayarlar Modalı -->
+    <div id="settingsModal" class="modal">
+        <div class="bg-white p-8 rounded-[2.5rem] w-[22rem] shadow-2xl space-y-6 border border-slate-100">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-black text-slate-800 dark:text-white">Ayarlar</h2>
+                <button onclick="toggleSettings()" class="text-slate-400 hover:text-slate-600 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <label class="block text-sm font-bold text-slate-500 uppercase tracking-wider">Müzik Seçimi</label>
+                <select id="musicSelect" class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <option value="alarm1">Klasik Alarm</option>
+                    <option value="alarm2">Yumuşak Melodi</option>
+                    <option value="alarm3">Dijital Uyarı</option>
+                </select>
+                <button id="testMusicBtn" onclick="toggleTestMusic()" class="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-bold flex items-center justify-center space-x-2 hover:bg-slate-200 transition">
+                    <span id="testIcon">▶</span>
+                    <span id="testText">Müziği Sına</span>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <label class="text-sm font-bold text-slate-500 uppercase tracking-wider">Ses Seviyesi</label>
+                    <span id="volLabel" class="text-sm font-bold text-blue-600">50%</span>
+                </div>
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+            </div>
+
+            <button onclick="toggleSettings()" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition">Ayarları Kapat</button>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" loop preload="auto"></audio>
+
+    <script>
+        let timerInterval = null;
+        let totalSeconds = 0;
+        let isDarkMode = false;
+        let isTesting = false;
+        let isPaused = false;
+
+        const body = document.getElementById('bodyTag');
+        const themeBtn = document.getElementById('themeBtn');
+        const audio = document.getElementById('audioPlayer');
+        const musicSelect = document.getElementById('musicSelect');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volLabel = document.getElementById('volLabel');
+        const testBtn = document.getElementById('testMusicBtn');
+        const testText = document.getElementById('testText');
+        const testIcon = document.getElementById('testIcon');
+        const startBtn = document.getElementById('startBtn');
+
+        const musicSources = {
+            alarm1: 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg',
+            alarm2: 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg',
+            alarm3: 'https://actions.google.com/sounds/v1/alarms/mechanical_clock_ringing.ogg'
+        };
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                body.classList.add('dark-mode');
+                themeBtn.innerText = "Beyaz Yap";
+            } else {
+                body.classList.remove('dark-mode');
+                themeBtn.innerText = "Siyah Yap";
+            }
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('active');
+            if (!modal.classList.contains('active') && isTesting) {
+                toggleTestMusic();
+            }
+        }
+
+        function toggleTestMusic() {
+            if (!isTesting) {
+                try {
+                    audio.src = musicSources[musicSelect.value];
+                    audio.volume = volumeSlider.value;
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            isTesting = true;
+                            testText.innerText = "Durdur";
+                            testIcon.innerText = "■";
+                        }).catch(error => console.error(error));
+                    }
+                } catch (e) { console.error(e); }
+            } else {
+                audio.pause();
+                audio.currentTime = 0;
+                isTesting = false;
+                testText.innerText = "Müziği Sına";
+                testIcon.innerText = "▶";
+            }
+        }
+
+        function addMinutes(min) {
+            let mInput = document.getElementById('m');
+            let current = parseInt(mInput.value) || 0;
+            let newVal = current + min;
+            if (newVal >= 60) {
+                let hInput = document.getElementById('h');
+                hInput.value = (parseInt(hInput.value) || 0) + Math.floor(newVal / 60);
+                mInput.value = newVal % 60;
+            } else mInput.value = newVal;
+        }
+
+        function handleStartPause() {
+            if (timerInterval && !isPaused) pauseTimer();
+            else if (isPaused) resumeTimer();
+            else startTimer();
+        }
+
+        function startTimer() {
+            let h = parseInt(document.getElementById('h').value) || 0;
+            let m = parseInt(document.getElementById('m').value) || 0;
+            let s = parseInt(document.getElementById('s').value) || 0;
+            totalSeconds = (h * 3600) + (m * 60) + s;
+            if (totalSeconds <= 0) return;
+            isPaused = false;
+            updateButtonUI("pause");
+            runTimerLoop();
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isPaused = true;
+            updateButtonUI("resume");
+        }
+
+        function resumeTimer() {
+            isPaused = false;
+            updateButtonUI("pause");
+            runTimerLoop();
+        }
+
+        function runTimerLoop() {
+            timerInterval = setInterval(() => {
+                totalSeconds--;
+                updateDisplay();
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    playAlarm();
+                    updateButtonUI("finished");
+                }
+            }, 1000);
+        }
+
+        function updateButtonUI(state) {
+            if (state === "pause") {
+                startBtn.innerText = "Duraklat";
+                startBtn.className = "w-full bg-amber-500 text-white text-xl font-bold py-5 rounded-[1.5rem] shadow-lg transition-all";
+            } else if (state === "resume") {
+                startBtn.innerText = "Devam Et";
+                startBtn.className = "w-full bg-green-600 text-white text-xl font-bold py-5 rounded-[1.5rem] shadow-lg transition-all";
+            } else if (state === "finished") {
+                startBtn.innerText = "Süre Doldu!";
+                startBtn.className = "w-full bg-red-600 text-white text-xl font-bold py-5 rounded-[1.5rem] shadow-lg transition-all";
+                startBtn.disabled = true;
+            } else {
+                startBtn.innerText = "Süreyi Başlat";
+                startBtn.disabled = false;
+                startBtn.className = "w-full bg-blue-600 text-white text-xl font-bold py-5 rounded-[1.5rem] shadow-lg hover:bg-blue-700 transition-all";
+            }
+        }
+
+        function updateDisplay() {
+            document.getElementById('h').value = Math.floor(totalSeconds / 3600);
+            document.getElementById('m').value = Math.floor((totalSeconds % 3600) / 60);
+            document.getElementById('s').value = totalSeconds % 60;
+        }
+
+        function playAlarm() {
+            audio.src = musicSources[musicSelect.value];
+            audio.volume = volumeSlider.value;
+            audio.play().catch(e => console.error(e));
+            body.classList.add('animate-pulse');
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            totalSeconds = 0;
+            isPaused = false;
+            audio.pause();
+            audio.currentTime = 0;
+            document.getElementById('h').value = 0;
+            document.getElementById('m').value = 0;
+            document.getElementById('s').value = 0;
+            updateButtonUI("reset");
+            body.classList.remove('animate-pulse');
+        }
+
+        volumeSlider.oninput = () => {
+            audio.volume = volumeSlider.value;
+            volLabel.innerText = Math.round(volumeSlider.value * 100) + "%";
+        };
+    </script>
+</body>
+</html>
